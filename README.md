@@ -66,12 +66,14 @@ A realtime realtime cryptocurrency trading dashboard built with Python and Strea
 The dashboard implements standard statistical arbitrage models.
 
 ### 1. Hedge Ratio (Beta)
-The hedge ratio ($\beta$) is calculated using Ordinary Least Squares (OLS) regression between the two asset prices.
+The hedge ratio beta is calculated using Ordinary Least Squares (OLS) regression between the two asset prices.
+
 Price_Y = beta times Price_X + epsilon 
 -   **Code Reference**: `analytics.ols_hedge_ratio`
 
 ### 2. Spread
 The spread is the residual of the linear relationship, representing the deviation from the expected price ratio.
+
 Spread = Price_Y - (\beta \times Price_X)
 -   **Code Reference**: `analytics.spread_and_zscore`
 
