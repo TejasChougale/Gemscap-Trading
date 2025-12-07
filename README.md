@@ -67,20 +67,20 @@ The dashboard implements standard statistical arbitrage models.
 
 ### 1. Hedge Ratio (Beta)
 The hedge ratio ($\beta$) is calculated using Ordinary Least Squares (OLS) regression between the two asset prices.
-$$ Price_Y = \beta \times Price_X + \epsilon $$
+Price_Y = beta times Price_X + epsilon 
 -   **Code Reference**: `analytics.ols_hedge_ratio`
 
 ### 2. Spread
 The spread is the residual of the linear relationship, representing the deviation from the expected price ratio.
-$$ Spread = Price_Y - (\beta \times Price_X) $$
+Spread = Price_Y - (\beta \times Price_X)
 -   **Code Reference**: `analytics.spread_and_zscore`
 
 ### 3. Z-Score
 The Z-Score measures how many standard deviations the current spread is from its moving average. It is used to identify mean-reversion opportunities.
-$$ Z = \frac{Spread - \mu}{\sigma} $$
+Z = (Spread - mu)/(sigma)
 Where:
--   $\mu$ = Rolling Mean of Spread (default 50-period)
--   $\sigma$ = Rolling Standard Deviation of Spread (default 50-period)
+-   mu = Rolling Mean of Spread (default 50-period)
+-   sigma = Rolling Standard Deviation of Spread (default 50-period)
 -   **Code Reference**: `analytics.spread_and_zscore`
 
 ### 4. Rolling Correlation
