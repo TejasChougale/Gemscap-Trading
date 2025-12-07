@@ -1,107 +1,182 @@
-# Gemscap Trading Dashboard
+# Gemscap Trading – Real-Time Quantitative Analytics Dashboard
 
-A realtime realtime cryptocurrency trading dashboard built with Python and Streamlit. This application ingests live market data from Binance, calculates advanced pair trading metrics (Spread, Z-Score, ADF Test), and provides a robust alerting system.
+A complete real-time analytical system built as part of the Quant Developer Assignment.
+This project ingests live Binance tick data, performs quantitative analytics, stores sampled data, and presents interactive visualizations through a Streamlit dashboard.
 
-![Dashboard Preview](https://via.placeholder.com/800x400?text=Gemscap+Dashboard+Preview)
+## 🚀 1. Overview
 
-## Features
+The system demonstrates an end-to-end quantitative workflow:
 
--   **Realtime Data**: Live candlestick and volume charts powered by WebSocket feeds.
--   **Statistical Arbitrage Tools**:
-    -   Realtime Pair Spread & Z-Score calculation.
-    -   Rolling Correlation & Beta (Hedge Ratio).
-    -   Augmented Dickey-Fuller (ADF) Stationarity Test.
--   **Alert Engine**:
-    -   Configurable alerts for Price, Z-Score, Spread, and more.
-    -   Live alert feed, ticker, and history log.
--   **Data Management**:
-    -   Export tick data to CSV/NDJSON.
-    -   Buffer management for long-running sessions.
+-   **Live tick ingestion** using Binance WebSocket
+-   **Sampling** into OHLCV (1s, 1m, 5m)
+-   **Advanced analytics**:
+    -   Hedge Ratio (OLS)
+    -   Spread & Z-Score
+    -   Rolling Correlation
+    -   ADF Stationarity Test
+-   **Real-time dashboard** for traders
+-   **Alert engine** for threshold-based triggers
+-   **CSV export** for ticks & analytics
+-   **Modular and scalable backend architecture**
 
-## Project Structure
+## 🏗️ 2. Architecture
 
--   `app.py`: Main Streamlit application and UI logic.
--   `backend.py`: Async WebSocket ingestor (Binance).
--   `analytics.py`: Statistical calculations (OLS, Spread, Z-Score).
--   `alerts.py`: Rule evaluation engine.
--   `storage.py`: Async SQLite and CSV persistence.
--   `resampling.py`: Tick-to-OHLCV conversion utilities.
+```
+Binance WebSocket
+        ↓
+Ingestion Engine (Async)
+        ↓
+Storage Layer (SQLite + CSV)
+        ↓
+Resampling Engine (Tick → OHLCV)
+        ↓
+Analytics Engine
+(OLS, Spread, Z-Score, ADF, Correlation)
+        ↓
+Streamlit Frontend
+        ↓
+Real-Time Charts, Stats, Alerts
+```
 
-## Installation
+**Files:**
+-   `/docs/archdraw.io` (Source)
 
-1.  **Clone the repository**:
+## 📦 3. Project Structure
+
+```
+Gemscap-Trading/
+│── app.py                 # Streamlit dashboard
+│── backend.py             # WebSocket ingest + pipelines
+│── analytics.py           # OLS, Z-Score, ADF, correlation
+│── alerts.py              # Rule-based alert engine
+│── storage.py             # SQLite + CSV data layer
+│── resampling.py          # Tick → OHLCV converter
+│── data/                  # Saved tick & OHLCV
+│── docs/                  # Architecture diagrams
+│── requirements.txt
+│── README.md
+```
+
+## ⚙️ 4. Installation
+
+1.  **Clone the repository**
     ```bash
     git clone https://github.com/TejasChougale/Gemscap-Trading.git
     cd Gemscap-Trading
     ```
 
-2.  **Create a virtual environment** (optional but recommended):
+2.  **Create Virtual Environment**
     ```bash
     python -m venv venv
     # Windows
     venv\Scripts\activate
-    # Mac/Linux
+    # Linux/Mac
     source venv/bin/activate
     ```
 
-3.  **Install dependencies**:
+3.  **Install Dependencies**
     ```bash
     pip install -r requirements.txt
     ```
 
-## Usage
+## ▶️ 5. Running the Application
 
-1.  **Run the application**:
+1.  **Start the Dashboard**
     ```bash
     streamlit run app.py
     ```
 
-2.  **Using the Dashboard**:
-    -   **Start**: Enter symbols (e.g., `BTCUSDT,ETHUSDT`) and click "Start" in the sidebar.
-    -   **Navigation**: Use the top tabs to switch between Graphs, Statistics, Alerts, and History.
-    -   **Alerts**: Configure rules in the sidebar and make sure to click **"Apply Rules"** to activate them.
+2.  **Using the UI**
+    -   Enter symbols (e.g., `BTCUSDT,ETHUSDT`)
+    -   Select timeframe (tick, 1s, 1m, 5m)
+    -   View Price, Spread, Z-Score, Correlation, ADF
+    -   Configure alerts (e.g., `Z > 2`, `Spread < -10`)
+    -   Download CSV data
 
-## Technical Details & Formulas
+## 📊 6. Analytics Implemented
 
-The dashboard implements standard statistical arbitrage models.
+### 1. Hedge Ratio (OLS Regression)
+Used to establish pair relationships.
 
-### 1. Hedge Ratio (Beta)
-The hedge ratio beta is calculated using Ordinary Least Squares (OLS) regression between the two asset prices.
-
-Price_Y = beta*Price_X + epsilon 
--   **Code Reference**: `analytics.ols_hedge_ratio`
+$$
+Y = \beta X + \epsilon
+$$
 
 ### 2. Spread
-The spread is the residual of the linear relationship, representing the deviation from the expected price ratio.
 
-Spread = Price_Y - (beta*times Price_X)
--   **Code Reference**: `analytics.spread_and_zscore`
+$$
+Spread = Y - \beta X
+$$
 
 ### 3. Z-Score
-The Z-Score measures how many standard deviations the current spread is from its moving average. It is used to identify mean-reversion opportunities.
-Z = (Spread - mu)/(sigma)
+
+$$
+Z = \frac{Spread - \mu}{\sigma}
+$$
+
 Where:
--   mu = Rolling Mean of Spread (default 50-period)
--   sigma = Rolling Standard Deviation of Spread (default 50-period)
--   **Code Reference**: `analytics.spread_and_zscore`
+-   $\mu$ = Rolling mean
+-   $\sigma$ = Rolling standard deviation
 
 ### 4. Rolling Correlation
-Calculates the Pearson correlation coefficient between the returns of the two assets over a rolling window.
--   **Code Reference**: `analytics.rolling_correlation`
+Pearson correlation over a sliding window.
 
-### 5. ADF Test (Stationarity)
-Performed using `statsmodels.tsa.stattools.adfuller`.
--   **Null Hypothesis**: The spread has a unit root (is non-stationary).
--   **Interpretation**: A p-value < 0.05 suggests the spread is stationary (mean-reverting), making it suitable for pairs trading.
+### 5. ADF Test
+**Null Hypothesis:** Spread has unit root (not stationary).
+**Interpretation:** p-value < 0.05 → Mean-reverting.
 
-### 6. Alert Logic
-Alerts are evaluated on every tick update.
--   **Condition**: `Value [Operator] Threshold` (e.g., `Z-Score > 2.0`).
--   **Enabled Rules**: Only rules marked as "Enabled" are processed.
+## 🔔 7. Alerts Engine
 
-## Requirements
+Rules can be defined such as:
+-   `Z-Score > 2`
+-   `Spread < -5`
+-   `Price > 90000`
 
--   Python 3.8+
+Alerts appear in:
+-   Real-time dashboard
+-   Alert history log
+
+## 📤 8. Data Export
+
+Exportable from the dashboard:
+-   Tick-level data (CSV)
+-   OHLCV data (CSV)
+-   Analytics CSVs
+
+## 🧪 9. Optional Extensions Implemented
+
+-   Kalman filter dynamic hedge ratio (planned/experimental)
+-   Heatmaps for multi-symbol correlation
+-   Mini mean-reversion backtest
+-   Liquidity filters
+-   Visual summaries for alerts
+
+## 📝 10. Methodology
+
+The design follows assignment guidelines:
+-   Modular, scalable backend
+-   WebSocket ingestion decoupled from analytics
+-   Asynchronous I/O for real-time performance
+-   Clear separation: ingest → store → resample → analyze → visualize
+-   Extensible pipeline for additional analytics
+
+## 🤖 11. ChatGPT Usage Transparency
+
+ChatGPT was used for:
+-   Debugging ingestion + async logic
+-   Optimizing analytics functions
+-   README structuring & documentation
+-   Designing architecture outline
+-   Boilerplate code cleanup
+
+Prompts focused on:
+-   Improving modularity
+-   Ensuring assignment compliance
+-   Visualizing architecture
+
+## 📚 12. Requirements
+
+-   `python >= 3.8`
 -   `streamlit`
 -   `pandas`
 -   `numpy`
@@ -110,6 +185,6 @@ Alerts are evaluated on every tick update.
 -   `aiosqlite`
 -   `aiohttp`
 
-## License
+## 📜 13. License
 
-[MIT License](LICENSE)
+This project is released under the MIT License.
